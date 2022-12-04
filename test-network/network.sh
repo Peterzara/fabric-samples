@@ -23,7 +23,7 @@ export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
 
 # push to the required directory & set a trap to go back if needed
-pushd ${ROOTDIR} > /dev/null
+pushd ${ROOTDIR} >/dev/null
 trap "popd > /dev/null" EXIT
 
 . scripts/utils.sh
@@ -56,7 +56,7 @@ NONWORKING_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 # of go or other items could be added.
 function checkPrereqs() {
   ## Check if your have cloned the peer binaries and configuration files.
-  peer version > /dev/null 2>&1
+  peer version >/dev/null 2>&1
 
   if [[ $? -ne 0 || ! -d "../config" ]]; then
     errorln "Peer binary and configuration files not found.."
@@ -92,7 +92,7 @@ function checkPrereqs() {
   ## Check for fabric-ca
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
 
-    fabric-ca-client version > /dev/null 2>&1
+    fabric-ca-client version >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
       errorln "fabric-ca-client binary not found.."
       errorln
@@ -159,15 +159,15 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Creating Org2 Identities"
+    # infoln "Creating Org2 Identities"
 
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
-    res=$?
-    { set +x; } 2>/dev/null
-    if [ $res -ne 0 ]; then
-      fatalln "Failed to generate certificates..."
-    fi
+    # set -x
+    # cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
+    # res=$?
+    # { set +x; } 2>/dev/null
+    # if [ $res -ne 0 ]; then
+    #   fatalln "Failed to generate certificates..."
+    # fi
 
     infoln "Creating Orderer Org Identities"
 
@@ -188,8 +188,7 @@ function createOrgs() {
 
     . organizations/fabric-ca/registerEnroll.sh
 
-    while :
-    do
+    while :; do
       if [ ! -f "organizations/fabric-ca/org1/tls-cert.pem" ]; then
         sleep 1
       else
@@ -201,9 +200,9 @@ function createOrgs() {
 
     createOrg1
 
-    infoln "Creating Org2 Identities"
+    # infoln "Creating Org2 Identities"
 
-    createOrg2
+    # createOrg2
 
     infoln "Creating Orderer Org Identities"
 
@@ -270,7 +269,7 @@ function createChannel() {
   # Bring up the network if it is not already up.
   bringUpNetwork="false"
 
-  if ! $CONTAINER_CLI info > /dev/null 2>&1 ; then
+  if ! $CONTAINER_CLI info >/dev/null 2>&1; then
     fatalln "$CONTAINER_CLI network is required to be running to create a channel"
   fi
 
@@ -285,7 +284,7 @@ function createChannel() {
 
   [[ $len -lt 4 ]] || [[ ! -d "organizations/peerOrganizations" ]] && bringUpNetwork="true" || echo "Network Running Already"
 
-  if [ $bringUpNetwork == "true"  ]; then
+  if [ $bringUpNetwork == "true" ]; then
     infoln "Bringing up network"
     networkUp
   fi
@@ -294,7 +293,6 @@ function createChannel() {
   # to create the channel creation transaction and the anchor peer updates.
   scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
 }
-
 
 ## Call the script to deploy a chaincode to the channel
 function deployCC() {
@@ -335,7 +333,6 @@ function networkDown() {
   else
     fatalln "Container CLI  ${CONTAINER_CLI} not supported"
   fi
-
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -409,7 +406,7 @@ DOCKER_SOCK="${SOCK##unix://}"
 # Parse commandline args
 
 ## Parse mode
-if [[ $# -lt 1 ]] ; then
+if [[ $# -lt 1 ]]; then
   printHelp
   exit 0
 else
@@ -418,82 +415,82 @@ else
 fi
 
 # parse a createChannel subcommand if used
-if [[ $# -ge 1 ]] ; then
+if [[ $# -ge 1 ]]; then
   key="$1"
   if [[ "$key" == "createChannel" ]]; then
-      export MODE="createChannel"
-      shift
+    export MODE="createChannel"
+    shift
   fi
 fi
 
 # parse flags
 
-while [[ $# -ge 1 ]] ; do
+while [[ $# -ge 1 ]]; do
   key="$1"
   case $key in
-  -h )
+  -h)
     printHelp $MODE
     exit 0
     ;;
-  -c )
+  -c)
     CHANNEL_NAME="$2"
     shift
     ;;
-  -ca )
+  -ca)
     CRYPTO="Certificate Authorities"
     ;;
-  -r )
+  -r)
     MAX_RETRY="$2"
     shift
     ;;
-  -d )
+  -d)
     CLI_DELAY="$2"
     shift
     ;;
-  -s )
+  -s)
     DATABASE="$2"
     shift
     ;;
-  -ccl )
+  -ccl)
     CC_SRC_LANGUAGE="$2"
     shift
     ;;
-  -ccn )
+  -ccn)
     CC_NAME="$2"
     shift
     ;;
-  -ccv )
+  -ccv)
     CC_VERSION="$2"
     shift
     ;;
-  -ccs )
+  -ccs)
     CC_SEQUENCE="$2"
     shift
     ;;
-  -ccp )
+  -ccp)
     CC_SRC_PATH="$2"
     shift
     ;;
-  -ccep )
+  -ccep)
     CC_END_POLICY="$2"
     shift
     ;;
-  -cccg )
+  -cccg)
     CC_COLL_CONFIG="$2"
     shift
     ;;
-  -cci )
+  -cci)
     CC_INIT_FCN="$2"
     shift
     ;;
-  -ccaasdocker )
+  -ccaasdocker)
     CCAAS_DOCKER_RUN="$2"
     shift
     ;;
-  -verbose )
+  -verbose)
     VERBOSE=true
     ;;
-  * )
+  *)
     errorln "Unknown flag: $key"
     printHelp
     exit 1
